@@ -1,17 +1,34 @@
-/* eslint-disable react/prop-types */
-import { useState } from "react"
+
+import { useState,useEffect } from "react"
 import Error from "./Error";
 
 
-const Formulario = ( {pacientes,setPacientes} ) => {
 
-  const [nombre,setNombre] = useState('Puppy');
-  const [propietario,setPropietario] = useState('Gabriel');
-  const [email,setEmail] = useState('gabriel.alfaro.cruz@gmail.com');
-  const [fecha,setFecha] = useState('2023-07-26');
-  const [sintomas,setSintomas] = useState('Hambre');
+const Formulario = ( {pacientes,setPacientes,paciente,setPaciente} ) => {
+
+  const [nombre,setNombre] = useState('');
+  const [propietario,setPropietario] = useState('');
+  const [email,setEmail] = useState('');
+  const [fecha,setFecha] = useState('');
+  const [sintomas,setSintomas] = useState('');
 
   const [error,setError] = useState(false);
+
+  useEffect(() => {
+    //valida si objeto "paciente" esta vacio.
+    if (Object.keys(paciente).length > 0) {
+      //seteamos.
+      setNombre(paciente.nombre);
+      setPropietario(paciente.propietario);
+      setEmail(paciente.email);
+      setFecha(paciente.fecha);
+      setSintomas(paciente.sintomas);
+    }
+  },[paciente])
+
+
+
+   
 
   const generarID = () =>{
     const random= Math.random().toString(36).substring(2);
@@ -23,24 +40,38 @@ const Formulario = ( {pacientes,setPacientes} ) => {
     e.preventDefault();
     //Validación del formulario.
     if ( [nombre,propietario,email,fecha,sintomas].includes('') ){
-        console.log('Hay al menos un string vacio')
         setError(true)
         return;
     }
     setError(false);
 
-    //Objetto de paciente
+    //Objetto de paciente (Estoy gargando los valores del formulario)
     const objetoPaciente = {
       nombre,
       propietario,
       email,
       fecha,
       sintomas,
-      id: generarID()
     }
-    // console.log(objetoPaciente);
-    setPacientes([...pacientes,objetoPaciente]); 
 
+    if (paciente.id) {
+      //Editando el registro.
+      objetoPaciente.id = paciente.id; //asigno el ID anterior de paciente.
+      const pacientesActualizados = pacientes.map ( pacientesState => 
+        pacientesState.id === paciente.id ? objetoPaciente : pacientesState)
+    
+      
+      //Aqui le enviamos el nuevo arreglo (object), con el cambio en el formulario.
+      //por lo que borra el anterior y crea el nuevo en el array.
+      setPacientes(pacientesActualizados);
+      setPaciente({})//limpiamos.
+
+    }else {
+      //Nuevo registro.
+      // console.log(objetoPaciente);
+      objetoPaciente.id= generarID();
+      setPacientes([...pacientes,objetoPaciente]); 
+    }
     //Reiniciando el formualrio
     setNombre('');
     setPropietario('');
@@ -143,7 +174,7 @@ const Formulario = ( {pacientes,setPacientes} ) => {
         <input 
           type="submit" 
           className="bg-indigo-600 w-full p-3 text-white uppercased font-bold hover:bg-indigo-700 cursor-pointer transation-all"
-          value="Agregar paciente"
+          value={paciente.id ? "Editar paciente" : "Agregar paciente"}
         />
         
       </form>
